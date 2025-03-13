@@ -11,6 +11,11 @@ from torch import nn
 import time
 import torchvision.transforms as T
 
+import wandb
+# log in to WanDB
+wandb.login(key="d14b80fa525fa1077c2e99c01a4d1141ab0c37dc")
+
+
 # Hyperparameters
 EPOCHS = 5  # epoch
 LR = 5  # learning rate
@@ -54,6 +59,7 @@ class CorpusInfo():
         def yield_tokens(data_iter):
             for text, _ in data_iter:
                 yield tokenizer(text)
+                
         self.vocab = build_vocab_from_iterator(yield_tokens(dataset), specials=[self.oov_token, self.pad_token])
         self.vocab.set_default_index(self.vocab[self.oov_token])
         
@@ -67,6 +73,12 @@ class TextTransform(torch.Callable):
     def __init__(self, tokenizer, vocab):
         self.tokenizer = tokenizer
         self.vocab = vocab
+
+    '''def tokenize_and_numericalize(self, text):
+        if isinstance(text, list):  # Ensure text is a string
+            text = " ".join(text)  # Convert list back to string
+        tokens = self.tokenizer(text)  # Tokenize the text
+        return [self.vocab[token] for token in tokens]'''
 
     def tokenize_and_numericalize(self, text):
         tokens = self.tokenizer(text)
@@ -105,14 +117,17 @@ def get_data():
     )
     tokenizer = get_tokenizer("basic_english")
     corpus_info = CorpusInfo(train_data, tokenizer)
+
     transform_txt = T.Compose([
         TextTransform(corpus_info.tokenizer, corpus_info.vocab),
         MaxLen(MAX_LEN),
     ])
+
     train_data = CsvTextDataset(
         csv_file='./data/txt_train.csv',
         transform=transform_txt,
     )
+    
     val_data = CsvTextDataset(
         csv_file='./data/txt_val.csv',
         transform=transform_txt,
@@ -121,6 +136,9 @@ def get_data():
         csv_file='./data/txt_test.csv',
         transform=transform_txt,
     )
+    # Compute article lengths **before** applying transformations
+    article_lengths = [len(l) for l, _ in train_data]
+    wandb.log({"Article Lengths": wandb.Histogram(article_lengths)}, step=0)
 
     collate_batch = PadSequence(corpus_info.pad_idx)
     train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, collate_fn=collate_batch)
@@ -192,6 +210,8 @@ def evaluate(dataloader, model, criterion):
     return total_acc / total_count
 
 def main():
+    wandb.init(project="text_classification_histogram", name="article_lengths")
+
     corpus_info, train_dataloader, val_dataloader, test_dataloader = get_data()
 
     model = TextClassificationModel(corpus_info.vocab_size, EMBED_DIM, corpus_info.num_labels).to(device)
