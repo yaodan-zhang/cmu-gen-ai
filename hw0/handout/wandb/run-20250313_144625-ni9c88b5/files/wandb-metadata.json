@@ -1,0 +1,44 @@
+{
+  "os": "macOS-14.7.2-arm64-arm-64bit",
+  "python": "CPython 3.9.6",
+  "startedAt": "2025-03-13T19:46:25.149823Z",
+  "program": "/Users/katherinezh/cmu-gen-ai/hw0/handout/txt_classifier.py",
+  "codePath": "hw0/handout/txt_classifier.py",
+  "git": {
+    "remote": "https://github.com/yaodan-zhang/cmu-gen-ai.git",
+    "commit": "f2fb27e39d7e1b82dfe32c7b41e75f84ad2f320c"
+  },
+  "email": "yaodanzhang00@gmail.com",
+  "root": "/Users/katherinezh/cmu-gen-ai/hw0/handout",
+  "host": "parasect",
+  "executable": "/Users/katherinezh/cmu-gen-ai/hw0/myenv/bin/python",
+  "codePathLocal": "txt_classifier.py",
+  "cpu_count": 8,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "494384795648",
+      "used": "339932614656"
+    },
+    "/System/Volumes/Data": {
+      "total": "494384795648",
+      "used": "339932614656"
+    }
+  },
+  "memory": {
+    "total": "17179869184"
+  },
+  "cpu": {
+    "count": 8,
+    "countLogical": 8
+  },
+  "apple": {
+    "name": "Apple M1",
+    "ecpuCores": 4,
+    "pcpuCores": 4,
+    "gpuCores": 8,
+    "memoryGb": 16,
+    "swapTotalBytes": "1073741824",
+    "ramTotalBytes": "17179869184"
+  }
+}

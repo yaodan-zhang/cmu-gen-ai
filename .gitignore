@@ -6,4 +6,5 @@ include/
 lib/
 share/
 pyvenv.cfg
-
+myenv/
+latex_template/
