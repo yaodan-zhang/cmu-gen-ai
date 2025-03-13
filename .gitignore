@@ -1,10 +1,6 @@
-project-IssueFix/
 .DS_Store
 */.DS_Store
-bin/
-include/
-lib/
-share/
-pyvenv.cfg
+
 myenv/
+
 latex_template/

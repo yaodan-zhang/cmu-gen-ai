@@ -210,13 +210,13 @@ def evaluate(dataloader, model, criterion):
     return total_acc / total_count
 
 def main():
-    wandb.init(project="text_classification_histogram", name="article_lengths")
+    wandb.init(project="text_classification_histogram", name="run-with-Adam-Optimizer")
 
     corpus_info, train_dataloader, val_dataloader, test_dataloader = get_data()
 
     model = TextClassificationModel(corpus_info.vocab_size, EMBED_DIM, corpus_info.num_labels).to(device)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     #TODO: optimizer = torch.optim.Adam(model.parameters())
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.1)
 
@@ -241,6 +241,8 @@ def main():
     print("Checking the results of test dataset.")
     accu_test = evaluate(test_dataloader, model, criterion)
     print("test accuracy {:8.3f}".format(accu_test))
+
+    wandb.log({"Validation Accuracy": total_accu, "Test Accuracy": accu_test})  
 
 if __name__ == '__main__':
     main()
