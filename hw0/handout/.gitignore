@@ -2,4 +2,8 @@ data/parrot/
 data/narwhal/
 data/axolotl/
 
+data/parrot.tar.gz
+data/narwhal.tar.gz
+data/axolotl.tar.gz
+
 wandb/

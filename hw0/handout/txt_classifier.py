@@ -152,7 +152,7 @@ def get_data():
     
     return corpus_info, train_dataloader, val_dataloader, test_dataloader
 
-class TextClassificationModel(nn.Module):
+'''class TextClassificationModel(nn.Module):
     def __init__(self, vocab_size, embed_dim, num_class):
         super(TextClassificationModel, self).__init__()
         self.embedding = nn.EmbeddingBag(vocab_size, embed_dim, sparse=False)
@@ -167,7 +167,31 @@ class TextClassificationModel(nn.Module):
 
     def forward(self, text):
         embedded = self.embedding(text)
-        return self.fc(embedded)
+        return self.fc(embedded)'''
+
+class LSTMTextClassifier(nn.Module):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, num_class, num_layers=1, bidirectional=False):
+        super(LSTMTextClassifier, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)  # Embedding layer
+        self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=bidirectional)
+        
+        # Compute final output size
+        lstm_output_size = hidden_dim * (2 if bidirectional else 1)
+        
+        self.fc = nn.Linear(lstm_output_size, num_class)  # Fully connected layer
+        
+    def forward(self, text):
+        """
+        text: Tensor of shape [batch_size, seq_length]
+        """
+        embedded = self.embedding(text)  # Convert indices to word embeddings
+        lstm_out, _ = self.lstm(embedded)  # Pass through LSTM
+        
+        # Use the last time step's hidden state for classification
+        last_hidden_state = lstm_out[:, -1, :]  # Shape: [batch_size, hidden_dim]
+        
+        output = self.fc(last_hidden_state)  # Pass through fully connected layer
+        return output
 
 
 def train_one_epoch(dataloader, model, criterion, optimizer, epoch):
@@ -210,14 +234,28 @@ def evaluate(dataloader, model, criterion):
     return total_acc / total_count
 
 def main():
-    wandb.init(project="text_classification_histogram", name="run-with-Adam-Optimizer")
+    wandb.init(project="text_classification_histogram", name="run-with-LSTM-Model")
 
     corpus_info, train_dataloader, val_dataloader, test_dataloader = get_data()
 
-    model = TextClassificationModel(corpus_info.vocab_size, EMBED_DIM, corpus_info.num_labels).to(device)
+    '''model = TextClassificationModel(corpus_info.vocab_size, EMBED_DIM, corpus_info.num_labels).to(device)'''
+
+    HIDDEN_DIM = 128  # Number of LSTM units per layer
+    NUM_LAYERS = 2    # Stacked LSTM layers
+    BIDIRECTIONAL = True  # Use bidirectional LSTM
+
+    model = LSTMTextClassifier(
+        vocab_size=corpus_info.vocab_size,
+        embed_dim=EMBED_DIM,
+        hidden_dim=HIDDEN_DIM,
+        num_class=corpus_info.num_labels,
+        num_layers=NUM_LAYERS,
+        bidirectional=BIDIRECTIONAL
+    ).to(device)
+
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
-    #TODO: optimizer = torch.optim.Adam(model.parameters())
+    
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.1)
 
     total_accu = None    
